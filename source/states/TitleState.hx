@@ -70,12 +70,6 @@ class TitleState extends MusicBeatState
 		super.create();
 		Paths.clearUnusedMemory();
 
-		if(!initialized)
-		{
-			ClientPrefs.loadPrefs();
-			Language.reloadPhrases();
-		}
-
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
 		if(!initialized)

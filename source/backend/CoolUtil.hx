@@ -7,8 +7,8 @@ class CoolUtil
 {
 	public static function checkForUpdates(url:String = null):String {
 		if (url == null || url.length == 0)
-			url = "https://raw.githubusercontent.com/ShadowMario/FNF-PsychEngine/main/gitVersion.txt";
-		var version:String = states.MainMenuState.psychEngineVersion.trim();
+			url = "https://raw.githubusercontent.com/Electr0Gunner/MindSparkEngine/refs/heads/main/gitVersion.txt";
+		var version:String = FunkinGame.ENGINE_VERSION.trim();
 		if(ClientPrefs.data.checkForUpdates) {
 			trace('checking for updates...');
 			var http = new haxe.Http(url);
@@ -180,4 +180,17 @@ class CoolUtil
 				text.borderStyle = NONE;
 		}
 	}
+
+    public static function formatBytes(bytes:Float):String
+    {
+        var units = ["B", "KB", "MB", "GB", "TB"];
+        var index = 0;
+        while (bytes >= 1024 && index < units.length)
+        {
+            bytes /= 1024;
+            index++;
+        }
+        return '${Math.round(bytes * 100) / 100} ${units[index]}';
+    }
+
 }
