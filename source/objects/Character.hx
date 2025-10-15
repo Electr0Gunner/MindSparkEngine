@@ -38,6 +38,12 @@ typedef AnimArray = {
 	var offsets:Array<Int>;
 }
 
+enum CharacterType {
+	PLAYER;
+	OPPONENT;
+	GF;
+}
+
 class Character extends FlxSprite
 {
 	/**
@@ -51,6 +57,7 @@ class Character extends FlxSprite
 
 	public var isPlayer:Bool = false;
 	public var curCharacter:String = DEFAULT_CHARACTER;
+	public var charType:CharacterType = OPPONENT;
 
 	public var holdTimer:Float = 0;
 	public var heyTimer:Float = 0;
@@ -99,6 +106,11 @@ class Character extends FlxSprite
 				playAnim("shoot1");
 			case 'pico-blazin', 'darnell-blazin':
 				skipDance = true;
+		}
+
+		if (PlayState.instance != null && !PlayState.instance.characters.contains(this))
+		{
+			PlayState.instance.characters.push(this);
 		}
 	}
 
@@ -463,6 +475,25 @@ class Character extends FlxSprite
 		animation.addByPrefix(name, anim, 24, false);
 	}
 
+	public function checkDance(beat:Int) {
+		var anim:String = getAnimationName();
+
+		switch (charType)
+		{
+			case PLAYER:
+				if(holdTimer > Conductor.stepCrochet * (0.0011 #if FLX_PITCH / FlxG.sound.music.pitch #end) * singDuration && anim.startsWith('sing') && !anim.endsWith('miss') && !PlayState.instance.areKeysHeld())
+					dance();
+				else if (beat % danceEveryNumBeats == 0 && !anim.startsWith('sing') && !stunned)
+					dance();
+			case OPPONENT:
+				if (beat % danceEveryNumBeats == 0 && !anim.startsWith('sing') && !stunned)
+					dance();
+			case GF:
+				if (beat % Math.round(PlayState.instance.gfSpeed * danceEveryNumBeats) == 0 && !anim.startsWith('sing') && !stunned)
+					dance();
+		}
+	}
+
 	// Atlas support
 	// special thanks ne_eo for the references, you're the goat!!
 	@:allow(states.editors.CharacterEditorState)
@@ -532,6 +563,10 @@ class Character extends FlxSprite
 
 	public override function destroy()
 	{
+		if (PlayState.instance != null && PlayState.instance.characters.contains(this))
+		{
+			PlayState.instance.characters.remove(this);
+		}
 		atlas = FlxDestroyUtil.destroy(atlas);
 		super.destroy();
 	}

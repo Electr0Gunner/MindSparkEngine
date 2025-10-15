@@ -117,6 +117,7 @@ class PlayState extends MusicBeatState
 	public var boyfriendGroup:FlxSpriteGroup;
 	public var dadGroup:FlxSpriteGroup;
 	public var gfGroup:FlxSpriteGroup;
+	public var characters:Array<Character> = [];
 	public static var curStage:String = '';
 	public static var stageUI(default, set):String = "normal";
 	public static var uiPrefix:String = "";
@@ -402,16 +403,19 @@ class PlayState extends MusicBeatState
 		{
 			if(SONG.gfVersion == null || SONG.gfVersion.length < 1) SONG.gfVersion = 'gf'; //Fix for the Chart Editor
 			gf = new Character(0, 0, SONG.gfVersion);
+			gf.charType = GF;
 			startCharacterPos(gf);
 			gfGroup.scrollFactor.set(0.95, 0.95);
 			gfGroup.add(gf);
 		}
 
 		dad = new Character(0, 0, SONG.player2);
+		dad.charType = OPPONENT;
 		startCharacterPos(dad, true);
 		dadGroup.add(dad);
 
 		boyfriend = new Character(0, 0, SONG.player1, true);
+		boyfriend.charType = PLAYER;
 		startCharacterPos(boyfriend);
 		boyfriendGroup.add(boyfriend);
 		
@@ -716,6 +720,7 @@ class PlayState extends MusicBeatState
 			case 0:
 				if(!boyfriendMap.exists(newCharacter)) {
 					var newBoyfriend:Character = new Character(0, 0, newCharacter, true);
+					newBoyfriend.charType = PLAYER;
 					boyfriendMap.set(newCharacter, newBoyfriend);
 					boyfriendGroup.add(newBoyfriend);
 					startCharacterPos(newBoyfriend);
@@ -726,6 +731,7 @@ class PlayState extends MusicBeatState
 			case 1:
 				if(!dadMap.exists(newCharacter)) {
 					var newDad:Character = new Character(0, 0, newCharacter);
+					newDad.charType = OPPONENT;
 					dadMap.set(newCharacter, newDad);
 					dadGroup.add(newDad);
 					startCharacterPos(newDad, true);
@@ -736,6 +742,7 @@ class PlayState extends MusicBeatState
 			case 2:
 				if(gf != null && !gfMap.exists(newCharacter)) {
 					var newGf:Character = new Character(0, 0, newCharacter);
+					newGf.charType = GF;
 					newGf.scrollFactor.set(0.95, 0.95);
 					gfMap.set(newCharacter, newGf);
 					gfGroup.add(newGf);
@@ -1797,8 +1804,6 @@ class PlayState extends MusicBeatState
 			{
 				if(!cpuControlled)
 					keysCheck();
-				else
-					playerDance();
 
 				if(notes.length > 0)
 				{
@@ -2853,9 +2858,6 @@ class PlayState extends MusicBeatState
 				}
 			}
 
-			if (!holdArray.contains(true) || endingSong)
-				playerDance();
-
 			#if ACHIEVEMENTS_ALLOWED
 			else checkForAchievement(['oversinging']);
 			#end
@@ -2866,6 +2868,17 @@ class PlayState extends MusicBeatState
 			for (i in 0...releaseArray.length)
 				if(releaseArray[i] || strumsBlocked[i] == true)
 					keyReleased(i);
+	}
+
+	public function areKeysHeld():Bool
+	{		
+		var holdArray:Array<Bool> = [];
+		for (key in keysArray)
+		{
+			holdArray.push(controls.pressed(key));
+		}
+
+		return (startedCountdown && !inCutscene && generatedMusic && holdArray.contains(true));
 	}
 
 	function noteMiss(daNote:Note):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
@@ -3239,19 +3252,10 @@ class PlayState extends MusicBeatState
 
 	public function characterBopper(beat:Int):Void
 	{
-		if (gf != null && beat % Math.round(gfSpeed * gf.danceEveryNumBeats) == 0 && !gf.getAnimationName().startsWith('sing') && !gf.stunned)
-			gf.dance();
-		if (boyfriend != null && beat % boyfriend.danceEveryNumBeats == 0 && !boyfriend.getAnimationName().startsWith('sing') && !boyfriend.stunned)
-			boyfriend.dance();
-		if (dad != null && beat % dad.danceEveryNumBeats == 0 && !dad.getAnimationName().startsWith('sing') && !dad.stunned)
-			dad.dance();
-	}
-
-	public function playerDance():Void
-	{
-		var anim:String = boyfriend.getAnimationName();
-		if(boyfriend.holdTimer > Conductor.stepCrochet * (0.0011 #if FLX_PITCH / FlxG.sound.music.pitch #end) * boyfriend.singDuration && anim.startsWith('sing') && !anim.endsWith('miss'))
-			boyfriend.dance();
+		for (character in characters)
+		{
+			character.checkDance(beat);
+		}
 	}
 
 	override function sectionHit()
