@@ -274,7 +274,6 @@ class PlayState extends MusicBeatState
 		Paths.clearStoredMemory();
 		if(nextReloadAll)
 		{
-			Paths.clearUnusedMemory();
 			Language.reloadPhrases();
 		}
 		nextReloadAll = false;
@@ -638,7 +637,6 @@ class PlayState extends MusicBeatState
 		splash.alpha = 0.000001; //cant make it invisible or it won't allow precaching
 
 		super.create();
-		Paths.clearUnusedMemory();
 
 		cacheCountdown();
 		cachePopUpScore();

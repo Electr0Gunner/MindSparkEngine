@@ -29,110 +29,9 @@ class Paths
 	inline public static var SOUND_EXT = #if web "mp3" #else "ogg" #end;
 	inline public static var VIDEO_EXT = "mp4";
 
-	public static function excludeAsset(key:String) {
-		if (!dumpExclusions.contains(key))
-			dumpExclusions.push(key);
-	}
-
-	public static var dumpExclusions:Array<String> = ['assets/shared/music/freakyMenu.$SOUND_EXT'];
-	// haya I love you for the base cache dump I took to the max
-	public static function clearUnusedMemory()
-	{
-		// clear non local assets in the tracked assets list
-		for (key in currentTrackedAssets.keys())
-		{
-			// if it is not currently contained within the used local assets
-			if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key))
-			{
-				destroyGraphic(currentTrackedAssets.get(key)); // get rid of the graphic
-				currentTrackedAssets.remove(key); // and remove the key from local cache map
-			}
-		}
-
-		// run the garbage collector for good measure lmfao
-		System.gc();
-	}
-
-	// define the locally tracked assets
-	public static var localTrackedAssets:Array<String> = [];
-
-	@:access(flixel.system.frontEnds.BitmapFrontEnd._cache)
 	public static function clearStoredMemory()
 	{
-		// clear anything not in the tracked assets list
-		for (key in FlxG.bitmap._cache.keys())
-		{
-			if (!currentTrackedAssets.exists(key))
-				destroyGraphic(FlxG.bitmap.get(key));
-		}
-
-		// clear all sounds that are cached
-		for (key => asset in currentTrackedSounds)
-		{
-			if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key) && asset != null)
-			{
-				Assets.cache.clear(key);
-				currentTrackedSounds.remove(key);
-			}
-		}
-		// flags everything to be cleared out next unused memory clear
-		localTrackedAssets = [];
-		#if !html5 openfl.Assets.cache.clear("songs"); #end
-	}
-
-	public static function freeGraphicsFromMemory()
-	{
-		var protectedGfx:Array<FlxGraphic> = [];
-		function checkForGraphics(spr:Dynamic)
-		{
-			try
-			{
-				var grp:Array<Dynamic> = Reflect.getProperty(spr, 'members');
-				if(grp != null)
-				{
-					//trace('is actually a group');
-					for (member in grp)
-					{
-						checkForGraphics(member);
-					}
-					return;
-				}
-			}
-
-			//trace('check...');
-			try
-			{
-				var gfx:FlxGraphic = Reflect.getProperty(spr, 'graphic');
-				if(gfx != null)
-				{
-					protectedGfx.push(gfx);
-					//trace('gfx added to the list successfully!');
-				}
-			}
-			//catch(haxe.Exception) {}
-		}
-
-		for (member in FlxG.state.members)
-			checkForGraphics(member);
-
-		if(FlxG.state.subState != null)
-			for (member in FlxG.state.subState.members)
-				checkForGraphics(member);
-
-		for (key in currentTrackedAssets.keys())
-		{
-			// if it is not currently contained within the used local assets
-			if (!dumpExclusions.contains(key))
-			{
-				var graphic:FlxGraphic = currentTrackedAssets.get(key);
-				if(!protectedGfx.contains(graphic))
-				{
-					destroyGraphic(graphic); // get rid of the graphic
-					currentTrackedAssets.remove(key); // and remove the key from local cache map
-					//trace('deleted $key');
-				}
-			}
-		}
+		Cache.clear();
 	}
 
 	inline static function destroyGraphic(graphic:FlxGraphic)
@@ -229,55 +128,19 @@ class Paths
 	static public function image(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxGraphic
 	{
 		key = Language.getFileTranslation('images/$key') + '.png';
-		var bitmap:BitmapData = null;
-		if (currentTrackedAssets.exists(key))
-		{
-			localTrackedAssets.push(key);
-			return currentTrackedAssets.get(key);
-		}
-		return cacheBitmap(key, parentFolder, bitmap, allowGPU);
+		return cacheBitmap(key, parentFolder);
 	}
 
-	public static function cacheBitmap(key:String, ?parentFolder:String = null, ?bitmap:BitmapData, ?allowGPU:Bool = true):FlxGraphic
+	public static function cacheBitmap(key:String, ?parentFolder:String = null):FlxGraphic
 	{
-		if (bitmap == null)
-		{
-			var file:String = getPath(key, IMAGE, parentFolder, true);
-			#if MODS_ALLOWED
-			if (FileSystem.exists(file))
-				bitmap = BitmapData.fromFile(file);
-			else #end if (OpenFlAssets.exists(file, IMAGE))
-				bitmap = OpenFlAssets.getBitmapData(file);
-
-			if (bitmap == null)
-			{
-				trace('Bitmap not found: $file | key: $key');
-				return null;
-			}
-		}
-
-		if (allowGPU && ClientPrefs.data.cacheOnGPU && bitmap.image != null)
-		{
-			bitmap.lock();
-			if (bitmap.__texture == null)
-			{
-				bitmap.image.premultiplied = true;
-				bitmap.getTexture(FlxG.stage.context3D);
-			}
-			bitmap.getSurface();
-			bitmap.disposeImage();
-			bitmap.image.data = null;
-			bitmap.image = null;
-			bitmap.readable = true;
-		}
-
-		var graph:FlxGraphic = FlxGraphic.fromBitmapData(bitmap, false, key);
-		graph.persist = true;
-		graph.destroyOnNoUse = false;
-
-		currentTrackedAssets.set(key, graph);
-		localTrackedAssets.push(key);
+		var graph:FlxGraphic = Cache.image(getPath(key, IMAGE, parentFolder, true));
 		return graph;
+	}
+
+	public static function cacheRawBitmap(key:String, ?bitmap:BitmapData = null) 
+	{
+		@:privateAccess
+		Cache._cache.set(key, {data: bitmap, metadata: {state: Type.getClassName(Type.getClass(FlxG.state)), permanent: false}});
 	}
 
 	inline static public function getTextFromFile(key:String, ?ignoreMods:Bool = false):String
@@ -425,25 +288,7 @@ class Paths
 	{
 		var file:String = getPath(Language.getFileTranslation(key) + '.$SOUND_EXT', SOUND, path, modsAllowed);
 
-		//trace('precaching sound: $file');
-		if(!currentTrackedSounds.exists(file))
-		{
-			#if sys
-			if(FileSystem.exists(file))
-				currentTrackedSounds.set(file, Sound.fromFile(file));
-			#else
-			if(OpenFlAssets.exists(file, SOUND))
-				currentTrackedSounds.set(file, OpenFlAssets.getSound(file));
-			#end
-			else if(beepOnNull)
-			{
-				trace('SOUND NOT FOUND: $key, PATH: $path');
-				FlxG.log.error('SOUND NOT FOUND: $key, PATH: $path');
-				return FlxAssets.getSound('flixel/sounds/beep');
-			}
-		}
-		localTrackedAssets.push(file);
-		return currentTrackedSounds.get(file);
+		return Cache.sound(file);
 	}
 
 	#if MODS_ALLOWED

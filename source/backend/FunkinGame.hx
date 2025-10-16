@@ -10,9 +10,7 @@ class FunkinGame extends FlxGame {
 
 	public function new(gameWidth = 0, gameHeight = 0, updateFramerate = 60, drawFramerate = 60, skipSplash = false, startFullscreen = false)
 	{
-
 		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
 
 		#if LUA_ALLOWED
 		Mods.pushGlobalMods();

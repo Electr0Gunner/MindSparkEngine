@@ -1,5 +1,6 @@
 package states;
 
+import backend.Cache;
 import lime.app.Future;
 import sys.thread.FixedThreadPool;
 import haxe.Json;
@@ -345,8 +346,8 @@ class LoadingState extends MusicBeatState
 	{
 		for (key => bitmap in requestedBitmaps)
 		{
-			if (bitmap != null && Paths.cacheBitmap(originalBitmapKeys.get(key), bitmap) != null) {} //trace('finished preloading image $key');
-			else trace('failed to cache image $key');
+			//if (bitmap != null && Paths.cacheBitmap(originalBitmapKeys.get(key), bitmap) != null) {} //trace('finished preloading image $key');
+			//else trace('failed to cache image $key');
 		}
 		requestedBitmaps.clear();
 		originalBitmapKeys.clear();
@@ -777,7 +778,8 @@ class LoadingState extends MusicBeatState
 			{
 				var sound:Sound = #if sys Sound.fromFile(file) #else OpenFlAssets.getSound(file, false) #end;
 				mutex.acquire();
-				Paths.currentTrackedSounds.set(file, sound);
+				@:privateAccess
+					Cache._cache.set(file, {data: sound, metadata: {state: Type.getClassName(PlayState), permanent: false}});
 				mutex.release();
 			}
 			else if (beepOnNull)
@@ -787,24 +789,21 @@ class LoadingState extends MusicBeatState
 				return FlxAssets.getSound('flixel/sounds/beep');
 			}
 		}
-		mutex.acquire();
-		Paths.localTrackedAssets.push(file);
-		mutex.release();
 
-		return Paths.currentTrackedSounds.get(file);
+		return Cache.sound(file);
 	}
 
-	// thread safe sound loader
+	// thread safe graphic loader
 	static function preloadGraphic(key:String):Null<BitmapData>
 	{
 		try {
 			var requestKey:String = 'images/$key';
 			#if TRANSLATIONS_ALLOWED requestKey = Language.getFileTranslation(requestKey); #end
 			if(requestKey.lastIndexOf('.') < 0) requestKey += '.png';
-
+			var file:String = Paths.getPath(requestKey, IMAGE);
 			if (!Paths.currentTrackedAssets.exists(requestKey))
 			{
-				var file:String = Paths.getPath(requestKey, IMAGE);
+
 				if (#if sys FileSystem.exists(file) || #end OpenFlAssets.exists(file, IMAGE))
 				{
 					#if sys
@@ -814,15 +813,17 @@ class LoadingState extends MusicBeatState
 					#end
 
 					mutex.acquire();
-					requestedBitmaps.set(file, bitmap);
+					@:privateAccess
+					Cache._cache.set(file, {data: FlxGraphic.fromBitmapData(bitmap),  metadata: {permanent: false, state: Type.getClassName(Type.getClass(FlxG.state))}});
 					originalBitmapKeys.set(file, requestKey);
+					requestedBitmaps.set(file, bitmap);
 					mutex.release();
 					return bitmap;
 				}
 				else trace('no such image $key exists');
 			}
 
-			return Paths.currentTrackedAssets.get(requestKey).bitmap;
+			return Cache.image(file).bitmap;
 		}
 		catch(e:haxe.Exception)
 		{
