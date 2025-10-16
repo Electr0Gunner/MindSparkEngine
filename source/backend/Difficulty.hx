@@ -11,11 +11,11 @@ class Difficulty
 
 	public static var list:Array<String> = [];
 
-	inline public static function getFilePath(num:Null<Int> = null)
+	inline public static function getFilePath(diff:Null<String> = null)
 	{
-		if(num == null) num = PlayState.storyDifficulty;
+		if(diff == null) diff = PlayState.storyDifficulty;
 
-		var filePostfix:String = list[num];
+		var filePostfix:String = diff;
 		if(filePostfix != null && Paths.formatToSongPath(filePostfix) != Paths.formatToSongPath(defaultDifficulty))
 			filePostfix = '-' + filePostfix;
 		else
@@ -58,10 +58,10 @@ class Difficulty
 		list = diffs.copy();
 	}
 
-	inline public static function getString(?num:Null<Int> = null, ?canTranslate:Bool = true):String
+	inline public static function getString(?diff:Null<String> = null, ?canTranslate:Bool = true):String
 	{
-		var diffName:String = list[num == null ? PlayState.storyDifficulty : num];
-		if(diffName == null) diffName = defaultDifficulty;
+		var targetDiff:String = diff == null ? PlayState.storyDifficulty : diff;
+		var diffName:String = list[list.contains(targetDiff) ? list.indexOf(targetDiff) : 0];
 		return canTranslate ? Language.getPhrase('difficulty_$diffName', diffName) : diffName;
 	}
 

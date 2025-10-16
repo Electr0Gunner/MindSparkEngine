@@ -50,7 +50,7 @@ class PauseSubState extends MusicBeatSubstate
 		menuItems = menuItemsOG;
 
 		for (i in 0...Difficulty.list.length) {
-			var diff:String = Difficulty.getString(i);
+			var diff:String = Difficulty.getString(Difficulty.list[i]);
 			difficultyChoices.push(diff);
 		}
 		difficultyChoices.push('BACK');
@@ -223,13 +223,13 @@ class PauseSubState extends MusicBeatSubstate
 			if (menuItems == difficultyChoices)
 			{
 				var songLowercase:String = Paths.formatToSongPath(PlayState.SONG.song);
-				var poop:String = Highscore.formatSong(songLowercase, curSelected);
+				var poop:String = Highscore.formatSong(songLowercase, Difficulty.list[curSelected]);
 				try
 				{
 					if(menuItems.length - 1 != curSelected && difficultyChoices.contains(daSelected))
 					{
 						Song.loadFromJson(poop, songLowercase);
-						PlayState.storyDifficulty = curSelected;
+						PlayState.storyDifficulty = Difficulty.list[curSelected];
 						MusicBeatState.resetState();
 						FlxG.sound.music.volume = 0;
 						PlayState.changedDifficulty = true;

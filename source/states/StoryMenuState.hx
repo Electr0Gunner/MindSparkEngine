@@ -22,7 +22,7 @@ class StoryMenuState extends MusicBeatState
 	var scoreText:FlxText;
 
 	private static var lastDifficultyName:String = '';
-	var curDifficulty:Int = 1;
+	var curDifficulty:String = 'normal';
 
 	var txtWeekTitle:FlxText;
 	var bgSprite:FlxSprite;
@@ -151,7 +151,7 @@ class StoryMenuState extends MusicBeatState
 		{
 			lastDifficultyName = Difficulty.getDefault();
 		}
-		curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
+		curDifficulty = Difficulty.list[Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)))];
 		
 		sprDifficulty = new FlxSprite(0, leftArrow.y);
 		sprDifficulty.antialiasing = ClientPrefs.data.antialiasing;
@@ -371,12 +371,7 @@ class StoryMenuState extends MusicBeatState
 
 	function changeDifficulty(change:Int = 0):Void
 	{
-		curDifficulty += change;
-
-		if (curDifficulty < 0)
-			curDifficulty = Difficulty.list.length-1;
-		if (curDifficulty >= Difficulty.list.length)
-			curDifficulty = 0;
+		curDifficulty = Difficulty.list[FlxMath.wrap(Difficulty.list.indexOf(curDifficulty) + change, 0, Difficulty.list.length - 1)];
 
 		WeekData.setDirectoryFromWeek(loadedWeeks[curWeek]);
 
@@ -442,15 +437,15 @@ class StoryMenuState extends MusicBeatState
 		difficultySelectors.visible = unlocked;
 
 		if(Difficulty.list.contains(Difficulty.getDefault()))
-			curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(Difficulty.getDefault())));
+			curDifficulty = Difficulty.list[Math.round(Math.max(0, Difficulty.defaultList.indexOf(Difficulty.getDefault())))];
 		else
-			curDifficulty = 0;
+			curDifficulty = Difficulty.list[0];
 
 		var newPos:Int = Difficulty.list.indexOf(lastDifficultyName);
 		//trace('Pos of ' + lastDifficultyName + ' is ' + newPos);
 		if(newPos > -1)
 		{
-			curDifficulty = newPos;
+			curDifficulty = Difficulty.list[newPos];
 		}
 		updateText();
 	}

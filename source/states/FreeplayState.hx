@@ -24,7 +24,7 @@ class FreeplayState extends MusicBeatState
 	var selector:FlxText;
 	private static var curSelected:Int = 0;
 	var lerpSelected:Float = 0;
-	var curDifficulty:Int = -1;
+	var curDifficulty:String = 'normal';
 	private static var lastDifficultyName:String = Difficulty.getDefault();
 
 	var scoreBG:FlxSprite;
@@ -169,7 +169,7 @@ class FreeplayState extends MusicBeatState
 		intendedColor = bg.color;
 		lerpSelected = curSelected;
 
-		curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
+		curDifficulty = Difficulty.list[Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)))];
 
 		bottomBG = new FlxSprite(0, FlxG.height - 26).makeGraphic(FlxG.width, 26, 0xFF000000);
 		bottomBG.alpha = 0.6;
@@ -492,7 +492,8 @@ class FreeplayState extends MusicBeatState
 		if (player.playingMusic)
 			return;
 
-		curDifficulty = FlxMath.wrap(curDifficulty + change, 0, Difficulty.list.length-1);
+		var possibleIndex:Int =FlxMath.wrap(Difficulty.list.indexOf(curDifficulty) + change, 0, Difficulty.list.length-1);
+		curDifficulty = Difficulty.list[Difficulty.list[possibleIndex] != null ? possibleIndex : 0];
 		#if !switch
 		intendedScore = Highscore.getScore(songs[curSelected].songName, curDifficulty);
 		intendedRating = Highscore.getRating(songs[curSelected].songName, curDifficulty);
@@ -544,15 +545,14 @@ class FreeplayState extends MusicBeatState
 		Difficulty.loadFromWeek();
 		
 		var savedDiff:String = songs[curSelected].lastDifficulty;
-		var lastDiff:Int = Difficulty.list.indexOf(lastDifficultyName);
 		if(savedDiff != null && !Difficulty.list.contains(savedDiff) && Difficulty.list.contains(savedDiff))
-			curDifficulty = Math.round(Math.max(0, Difficulty.list.indexOf(savedDiff)));
-		else if(lastDiff > -1)
-			curDifficulty = lastDiff;
+			curDifficulty = Difficulty.list[Math.round(Math.max(0, Difficulty.list.indexOf(savedDiff)))];
+		else if(Difficulty.list.contains(lastDifficultyName))
+			curDifficulty = lastDifficultyName;
 		else if(Difficulty.list.contains(Difficulty.getDefault()))
-			curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(Difficulty.getDefault())));
+			curDifficulty = Difficulty.list[Math.round(Math.max(0, Difficulty.defaultList.indexOf(Difficulty.getDefault())))];
 		else
-			curDifficulty = 0;
+			curDifficulty = 'normal';
 
 		changeDiff();
 		_updateSongLastDifficulty();

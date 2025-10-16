@@ -374,10 +374,10 @@ class FunkinLua {
 			#end
 		});
 
-		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficultyNum:Int = -1) {
+		Lua_helper.add_callback(lua, "loadSong", function(?name:String = null, ?difficultyNum:String = null) {
 			if(name == null || name.length < 1)
 				name = Song.loadedSongName;
-			if (difficultyNum == -1)
+			if (difficultyNum == null)
 				difficultyNum = PlayState.storyDifficulty;
 
 			var poop = Highscore.formatSong(name, difficultyNum);

@@ -16,11 +16,11 @@ class ResetScoreSubState extends MusicBeatSubstate
 	var noText:Alphabet;
 
 	var song:String;
-	var difficulty:Int;
+	var difficulty:String;
 	var week:Int;
 
 	// Week -1 = Freeplay
-	public function new(song:String, difficulty:Int, character:String, week:Int = -1)
+	public function new(song:String, difficulty:String, character:String, week:Int = -1)
 	{
 		this.song = song;
 		this.difficulty = difficulty;
