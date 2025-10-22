@@ -23,13 +23,6 @@ import sys.thread.Mutex;
 import objects.Note;
 import objects.NoteSplash;
 
-#if HSCRIPT_ALLOWED
-import psychlua.HScript;
-import crowplexus.iris.Iris;
-import crowplexus.hscript.Expr.Error as IrisError;
-import crowplexus.hscript.Printer;
-#end
-
 #if cpp
 @:headerCode('
 #include <iostream>
@@ -84,9 +77,6 @@ class LoadingState extends MusicBeatState
 	var funkay:FlxSprite;
 	#end
 
-	#if HSCRIPT_ALLOWED
-	var hscript:HScript;
-	#end
 	override function create()
 	{
 		persistentUpdate = true;
@@ -104,7 +94,7 @@ class LoadingState extends MusicBeatState
 		bar.updateHitbox();
 		barGroup.add(bar);
 		barWidth = Std.int(barBack.width - 10);
-
+		/*
 		#if HSCRIPT_ALLOWED
 		if(Mods.currentModDirectory != null && Mods.currentModDirectory.trim().length > 0)
 		{
@@ -141,7 +131,7 @@ class LoadingState extends MusicBeatState
 			}
 		}
 		#end
-
+	*/
 		#if PSYCH_WATERMARKS // PSYCH LOADING SCREEN
 		var bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.antialiasing = ClientPrefs.data.antialiasing;
@@ -220,14 +210,14 @@ class LoadingState extends MusicBeatState
 			bar.scale.x = barWidth * curPercent;
 			bar.updateHitbox();
 		}
-		
+		/*
 		#if HSCRIPT_ALLOWED
 		if(hscript != null)
 		{
 			if(hscript.exists('onUpdate')) hscript.call('onUpdate', [elapsed]);
 			return;
 		}
-		#end
+		#end*/
 
 		#if PSYCH_WATERMARKS // PSYCH LOADING SCREEN
 		timePassed += elapsed;
@@ -300,7 +290,7 @@ class LoadingState extends MusicBeatState
 		}
 		#end
 	}
-
+/*
 	#if HSCRIPT_ALLOWED
 	override function destroy()
 	{
@@ -312,7 +302,7 @@ class LoadingState extends MusicBeatState
 		hscript = null;
 		super.destroy();
 	}
-	#end
+	#end*/
 	
 	var finishedLoading:Bool = false;
 	function onLoad()

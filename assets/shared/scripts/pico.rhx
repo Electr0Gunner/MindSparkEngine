@@ -1,0 +1,8 @@
+class Pico extends ScriptedCharacter
+{
+    public function new()
+    {
+        super(0, 0, 'pico');
+    }
+
+}

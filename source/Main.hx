@@ -16,11 +16,6 @@ import openfl.display.StageScaleMode;
 import lime.app.Application;
 import backend.ui.display.MindDebugDisplay;
 
-#if HSCRIPT_ALLOWED
-import crowplexus.iris.Iris;
-import psychlua.HScript.HScriptInfos;
-#end
-
 #if (linux || mac)
 import lime.graphics.Image;
 #end
@@ -82,7 +77,9 @@ class Main extends Sprite
 		hxvlc.util.Handle.init(#if (hxvlc >= "1.8.0")  ['--no-lua'] #end);
 		#end
 
+		//TODO: ADD ERROR  CALLBACKS
 		#if HSCRIPT_ALLOWED
+		/*
 		Iris.warn = function(x, ?pos:haxe.PosInfos) {
 			Iris.logLevel(WARN, x, pos);
 			var newPos:HScriptInfos = cast pos;
@@ -136,10 +133,8 @@ class Main extends Sprite
 			msgInfo += ' $x';
 			if (PlayState.instance != null)
 				PlayState.instance.addTextToDebug('FATAL: $msgInfo', 0xFFBB0000);
-		}
+		}*/
 		#end
-
-		#if LUA_ALLOWED Lua.set_callbacks_function(cpp.Callable.fromStaticFunction(psychlua.CallbackHandler.call)); #end
 
 		addChild(new FunkinGame(game.width, game.height, game.framerate, game.framerate, game.skipSplash, game.startFullscreen));
 

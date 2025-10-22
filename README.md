@@ -14,8 +14,6 @@ Inside `Project.xml`, you will find several variables to customize Psych Engine 
 
 To start you off, disabling *Video Cutscenes* should be simple, simply delete the line `"VIDEOS_ALLOWED"` or comment it out by wrapping the line in XML-like comments, like this: `<!-- YOUR_LINE_HERE -->`
 
-Same goes for *Lua Scripts*, comment out or delete the line with `LUA_ALLOWED`, this and other customization options are all available within the `Project.xml` file.
-
 ## Softcoding (.lua/.hx)
 For this you can head over to [the wiki](https://shadowmario.github.io/psychengine.lua)
 

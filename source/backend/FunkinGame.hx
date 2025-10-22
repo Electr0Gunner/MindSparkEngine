@@ -14,9 +14,6 @@ class FunkinGame extends FlxGame {
 		Paths.clearStoredMemory();
 		Paths.clearUnusedMemory();
 
-		#if LUA_ALLOWED
-		Mods.pushGlobalMods();
-		#end
 		Mods.loadTopMod();
 
 		var initialState:flixel.util.typeLimit.NextState.InitialState = TitleState;
